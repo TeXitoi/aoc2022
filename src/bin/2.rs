@@ -71,16 +71,39 @@ impl TryFrom<u8> for RoundResult {
     }
 }
 
-fn main() -> anyhow::Result<()> {
-    let f = std::io::BufReader::new(std::fs::File::open("data/input2.txt")?);
+fn part1() -> anyhow::Result<()> {
     let mut score = 0;
-    for l in f.lines() {
-        let l = l?;
-        let &[them, _, res] = l.as_bytes() else { bail!("bad line {}", l) };
+    for l in read()? {
+        let (them, us) = l?;
+        let (them, us): (Move, Move) = (them.try_into()?, us.try_into()?);
+        score += them.score(us);
+    }
+    println!("part1: {}", score);
+    Ok(())
+}
+
+fn part2() -> anyhow::Result<()> {
+    let mut score = 0;
+    for l in read()? {
+        let (them, res) = l?;
         let (them, res): (Move, RoundResult) = (them.try_into()?, res.try_into()?);
         let us = them.move_for(res);
         score += them.score(us);
     }
-    println!("score: {}", score);
+    println!("part2: {}", score);
     Ok(())
+}
+
+fn read() -> anyhow::Result<impl Iterator<Item = anyhow::Result<(u8, u8)>>> {
+    let f = std::io::BufReader::new(std::fs::File::open("data/input2.txt")?);
+    Ok(f.lines().map(|l| {
+        let l = l?;
+        let &[right, _, left] = l.as_bytes() else { bail!("bad line {}", l) };
+        Ok((right, left))
+    }))
+}
+
+fn main() -> anyhow::Result<()> {
+    part1()?;
+    part2()
 }
