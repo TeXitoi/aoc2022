@@ -10,6 +10,9 @@ fn create_stack(
     let mut res = vec![];
     for l in iter {
         let mut l = l?.into_bytes();
+        if l.is_empty() {
+            break;
+        }
         let mut idx = 0;
         l.retain(|_| {
             idx += 1;
@@ -56,11 +59,7 @@ fn make_move_9001(s: &mut [Vec<u8>], m @ (nb, _, to): (usize, usize, usize)) {
 
 fn run(f: fn(&mut [Vec<u8>], (usize, usize, usize))) -> anyhow::Result<String> {
     let mut lines = std::io::BufReader::new(std::fs::File::open("data/input5.txt")?).lines();
-    let mut stack = create_stack(
-        lines
-            .by_ref()
-            .take_while(|l| l.as_ref().map_or(false, |l| !l.is_empty())),
-    )?;
+    let mut stack = create_stack(lines.by_ref())?;
 
     for m in lines {
         let m = parse_move(&m?)?;
