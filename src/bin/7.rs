@@ -8,7 +8,7 @@ fn visit(
     loop {
         let Some(line) = lines.next() else { break };
         let line = line?;
-        match *line.split(' ').collect::<Vec<_>>().as_slice() {
+        match *line.split(' ').collect::<Vec<_>>() {
             ["$", "cd", "/"] => (),
             ["$", "cd", ".."] => break,
             ["$", "cd", _] => cur_size += visit(lines, f)?,
