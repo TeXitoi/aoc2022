@@ -8,13 +8,13 @@ fn visit(
     loop {
         let Some(line) = lines.next() else { break };
         let line = line?;
-        match line.split(' ').collect::<Vec<_>>().as_slice() {
-            &["$", "cd", "/"] => (),
-            &["$", "cd", ".."] => break,
-            &["$", "cd", _] => cur_size += visit(lines, f)?,
-            &["$", "ls"] => (),
-            &["dir", _] => (),
-            &[size, _] => cur_size += size.parse::<u32>()?,
+        match *line.split(' ').collect::<Vec<_>>().as_slice() {
+            ["$", "cd", "/"] => (),
+            ["$", "cd", ".."] => break,
+            ["$", "cd", _] => cur_size += visit(lines, f)?,
+            ["$", "ls"] => (),
+            ["dir", _] => (),
+            [size, _] => cur_size += size.parse::<u32>()?,
             _ => anyhow::bail!("unsupported command {:?}", line),
         }
     }

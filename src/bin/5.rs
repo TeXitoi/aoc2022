@@ -1,7 +1,9 @@
 use std::io::BufRead;
 
+type Move = (usize, usize, usize);
+
 fn is_crate(c: u8) -> bool {
-    b'A' <= c && c <= b'Z'
+    (b'A'..=b'Z').contains(&c)
 }
 
 fn create_stack(
@@ -31,7 +33,7 @@ fn create_stack(
     Ok(res)
 }
 
-fn parse_move(s: &str) -> anyhow::Result<(usize, usize, usize)> {
+fn parse_move(s: &str) -> anyhow::Result<Move> {
     let v = s
         .split(|c: char| !c.is_numeric())
         .filter(|s| !s.is_empty())
@@ -43,21 +45,21 @@ fn parse_move(s: &str) -> anyhow::Result<(usize, usize, usize)> {
     }
 }
 
-fn make_move_9000(s: &mut [Vec<u8>], (nb, from, to): (usize, usize, usize)) {
+fn make_move_9000(s: &mut [Vec<u8>], (nb, from, to): Move) {
     for _ in 0..nb {
         let Some(c) = s[from].pop() else { return };
         s[to].push(c);
     }
 }
 
-fn make_move_9001(s: &mut [Vec<u8>], m @ (nb, _, to): (usize, usize, usize)) {
+fn make_move_9001(s: &mut [Vec<u8>], m @ (nb, _, to): Move) {
     make_move_9000(s, m);
     let v = &mut s[to];
     let len = v.len();
     v[len - nb..].reverse();
 }
 
-fn run(f: fn(&mut [Vec<u8>], (usize, usize, usize))) -> anyhow::Result<String> {
+fn run(f: fn(&mut [Vec<u8>], Move)) -> anyhow::Result<String> {
     let mut lines = std::io::BufReader::new(std::fs::File::open("data/input5.txt")?).lines();
     let mut stack = create_stack(lines.by_ref())?;
 
