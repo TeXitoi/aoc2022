@@ -1,7 +1,7 @@
-use std::io::BufRead;
+use std::io::{self, BufRead};
 
 fn visit(
-    lines: &mut impl Iterator<Item = std::io::Result<String>>,
+    lines: &mut (impl Iterator<Item = io::Result<String>> + std::iter::FusedIterator),
     f: &mut impl FnMut(u32),
 ) -> anyhow::Result<u32> {
     let mut cur_size = 0;
@@ -22,8 +22,10 @@ fn visit(
     Ok(cur_size)
 }
 
-fn read() -> anyhow::Result<impl Iterator<Item = std::io::Result<String>>> {
-    Ok(std::io::BufReader::new(std::fs::File::open("data/input7.txt")?).lines())
+fn read() -> anyhow::Result<impl Iterator<Item = io::Result<String>> + std::iter::FusedIterator> {
+    Ok(io::BufReader::new(std::fs::File::open("data/input7.txt")?)
+        .lines()
+        .fuse())
 }
 
 fn main() -> anyhow::Result<()> {
