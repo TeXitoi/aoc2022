@@ -10,7 +10,7 @@ fn main() -> anyhow::Result<()> {
     for l in io::BufReader::new(std::fs::File::open("data/input9.txt")?).lines() {
         let l = l?;
         let (m, nb) = match *l.split(' ').collect::<Vec<_>>() {
-            [m, nb] => (m, nb.parse::<u32>()?),
+            [m, nb] => (m, nb.parse()?),
             _ => anyhow::bail!("bad line {:?}", l),
         };
         for _ in 0..nb {
