@@ -16,7 +16,7 @@ struct Monkey {
 impl Monkey {
     fn try_new(mut iter: impl Iterator<Item = io::Result<String>>) -> anyhow::Result<Self> {
         let mut items = Err(anyhow::anyhow!("no items"));
-        let mut operation: Result<Operation, _> = Err(anyhow::anyhow!("no operaion"));
+        let mut operation = Err::<Operation, _>(anyhow::anyhow!("no operaion"));
         let mut test = Err(anyhow::anyhow!("no test"));
         let mut if_true = Err(anyhow::anyhow!("no if_true"));
         let mut if_false = Err(anyhow::anyhow!("no if_false"));
@@ -60,12 +60,11 @@ impl Monkey {
     }
 
     fn turn(&mut self, manage: impl Fn(Score) -> Score) -> Vec<(usize, Score)> {
-        let items = std::mem::take(&mut self.items);
-        let v: Vec<_> = items
-            .into_iter()
+        let v: Vec<_> = self
+            .items
+            .drain(..)
             .map(|i| {
-                let i = (self.operation)(i);
-                let i = manage(i);
+                let i = manage((self.operation)(i));
                 let to_send = if i % self.test == 0 {
                     self.if_true
                 } else {
@@ -107,9 +106,9 @@ fn main() -> anyhow::Result<()> {
 
     println!("Part1: {}", run(monkeys.clone(), 20, |s| s / 3),);
 
-    let modulus: Score = monkeys.iter().map(|m| m.test).product();
-    println!("modulus: {}", modulus);
-    println!("Part2: {}", run(monkeys, 10000, |s| s % modulus),);
+    // We need a common multiple, the naive one is enough with u64
+    let cm: Score = monkeys.iter().map(|m| m.test).product();
+    println!("Part2: {}", run(monkeys, 10000, |s| s % cm),);
 
     Ok(())
 }
