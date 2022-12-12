@@ -44,21 +44,20 @@ fn main() -> anyhow::Result<()> {
         .collect::<Result<Vec<_>, _>>()?;
     let source = find_and_replace(&mut map, b'S', b'a')?;
     let target = find_and_replace(&mut map, b'E', b'z')?;
-    let map = &map;
     let mut dists: Vec<_> = map.iter().map(|v| vec![u32::MAX; v.len()]).collect();
     dists[target.0][target.1] = 0;
 
     // BFS as distance is always 1
     let mut q = std::collections::VecDeque::from_iter([target]);
     while let Some(p) = q.pop_front() {
-        q.extend(update(map, &mut dists, p));
+        q.extend(update(&map, &mut dists, p));
     }
 
     println!("Part1: {}", dists[source.0][source.1]);
 
     let min = dists
         .iter()
-        .zip(map)
+        .zip(&map)
         .flat_map(|(d, m)| d.iter().zip(m))
         .filter_map(|(&d, &m)| (m == b'a').then_some(d))
         .min();
