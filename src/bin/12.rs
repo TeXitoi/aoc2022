@@ -16,7 +16,12 @@ fn find_and_replace(
     anyhow::bail!("Not found")
 }
 
-fn update(map: &[Vec<u8>], distances: &mut [Vec<u32>], i: usize, j: usize) -> bool {
+fn update<'a>(
+    map: &'a [Vec<u8>],
+    dists: &'a mut [Vec<u32>],
+    (i, j): (usize, usize),
+) -> impl Iterator<Item = (usize, usize)> + 'a {
+    let d = dists[i][j] + 1;
     [
         (i.checked_sub(1), Some(j)),
         (Some(i), j.checked_sub(1)),
@@ -24,16 +29,15 @@ fn update(map: &[Vec<u8>], distances: &mut [Vec<u32>], i: usize, j: usize) -> bo
         (i.checked_add(1), Some(j)),
     ]
     .into_iter()
-    .filter_map(|(cur_i, cur_j)| {
+    .filter_map(move |(cur_i, cur_j)| {
         let (cur_i, cur_j) = (cur_i?, cur_j?);
-        (*map.get(cur_i)?.get(cur_j)? <= map[i][j] + 1)
-            .then(|| distances[cur_i][cur_j])?
-            .checked_add(1)
+        if *map.get(cur_i)?.get(cur_j)? + 1 >= map[i][j] && d < dists[cur_i][cur_j] {
+            dists[cur_i][cur_j] = d;
+            Some((cur_i, cur_j))
+        } else {
+            None
+        }
     })
-    .min()
-    .filter(|d| *d < distances[i][j])
-    .map(|d| distances[i][j] = d)
-    .is_some()
 }
 
 fn main() -> anyhow::Result<()> {
@@ -44,18 +48,18 @@ fn main() -> anyhow::Result<()> {
     let source = find_and_replace(&mut map, b'S', b'a')?;
     let target = find_and_replace(&mut map, b'E', b'z')?;
     let map = &map;
-    let mut distances: Vec<_> = map.iter().map(|v| vec![u32::MAX; v.len()]).collect();
-    distances[target.0][target.1] = 0;
+    let mut dists: Vec<_> = map.iter().map(|v| vec![u32::MAX; v.len()]).collect();
+    dists[target.0][target.1] = 0;
 
-    // Some naive shortest path because I'm lazy to implement Dijkstra. O(size×longest_path)
-    while (0..map.len())
-        .flat_map(|i| (0..map[i].len()).map(move |j| (i, j)))
-        .any(|(i, j)| update(map, &mut distances, i, j))
-    {}
+    // BFS as distance is always 1
+    let mut q = std::collections::VecDeque::from_iter([target]);
+    while let Some(p) = q.pop_front() {
+        q.extend(update(map, &mut dists, p));
+    }
 
-    println!("Part1: {}", distances[source.0][source.1]);
+    println!("Part1: {}", dists[source.0][source.1]);
 
-    let min = distances
+    let min = dists
         .iter()
         .enumerate()
         .flat_map(|(i, d)| {
