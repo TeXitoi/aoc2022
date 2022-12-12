@@ -61,14 +61,11 @@ fn main() -> anyhow::Result<()> {
 
     let min = dists
         .iter()
-        .enumerate()
-        .flat_map(|(i, d)| {
-            d.iter()
-                .enumerate()
-                .filter_map(move |(j, d)| (map[i][j] == b'a').then_some(d))
-        })
+        .zip(map)
+        .flat_map(|(d, m)| d.iter().zip(m))
+        .filter_map(|(&d, &m)| (m == b'a').then_some(d))
         .min();
-    println!("Part2: {}", min.unwrap_or(&u32::MAX));
+    println!("Part2: {}", min.unwrap_or(u32::MAX));
 
     Ok(())
 }
