@@ -31,12 +31,9 @@ fn update<'a>(
     .into_iter()
     .filter_map(move |(cur_i, cur_j)| {
         let (cur_i, cur_j) = (cur_i?, cur_j?);
-        if *map.get(cur_i)?.get(cur_j)? + 1 >= map[i][j] && d < dists[cur_i][cur_j] {
-            dists[cur_i][cur_j] = d;
-            Some((cur_i, cur_j))
-        } else {
-            None
-        }
+        let cur_d = dists.get_mut(cur_i)?.get_mut(cur_j)?;
+        *cur_d = (map[cur_i][cur_j] + 1 >= map[i][j] && d < *cur_d).then_some(d)?;
+        Some((cur_i, cur_j))
     })
 }
 
