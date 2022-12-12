@@ -35,12 +35,9 @@ fn main() -> anyhow::Result<()> {
             sum_small_dirs += cur_size;
         }
     })?;
-    println!("total size: {}", total_size);
     println!("part1: {}", sum_small_dirs);
 
     let target = 30000000 - (70000000 - total_size);
-    println!("target: {}", target);
-
     let mut to_remove_size = total_size;
     visit(&mut read()?, &mut |cur_size| {
         if cur_size >= target && cur_size < to_remove_size {
