@@ -1,56 +1,12 @@
+use serde::Deserialize;
 use std::cmp::Ordering;
 use std::io::{self, BufRead};
 
-fn peek(s: &[u8]) -> &[u8] {
-    if s.is_empty() {
-        return s;
-    }
-    let i = 1.max(s.iter().take_while(|c| (b'0'..=b'9').contains(c)).count());
-    &s[0..i]
-}
-
-fn take<'a>(s: &mut &'a [u8]) -> &'a [u8] {
-    let t = peek(s);
-    *s = &s[t.len()..];
-    t
-}
-
-fn parse(s: &mut &[u8]) -> anyhow::Result<Msg> {
-    match take(s) {
-        b"[" => {
-            let mut v = vec![];
-            loop {
-                match peek(s) {
-                    b"]" => {
-                        take(s);
-                        break;
-                    }
-                    b"," => {
-                        take(s);
-                    }
-                    _ => v.push(parse(s)?),
-                }
-            }
-            Ok(Msg::Vec(v))
-        }
-        t => Ok(Msg::Int(std::str::from_utf8(t)?.parse()?)),
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
+#[serde(untagged)]
 enum Msg {
     Int(u32),
     Vec(Vec<Msg>),
-}
-impl<'a> TryFrom<&'a [u8]> for Msg {
-    type Error = anyhow::Error;
-    fn try_from(mut s: &'a [u8]) -> anyhow::Result<Msg> {
-        let res = parse(&mut s)?;
-        if !s.is_empty() {
-            anyhow::bail!("Unreaded: {:?}", s);
-        }
-        Ok(res)
-    }
 }
 impl PartialOrd for Msg {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
@@ -71,19 +27,17 @@ impl Ord for Msg {
 fn main() -> anyhow::Result<()> {
     let mut score = 0;
 
-    let first = Msg::try_from(b"[[2]]".as_slice())?;
-    let second = Msg::try_from(b"[[6]]".as_slice())?;
+    let first: Msg = serde_json::from_str("[[2]]")?;
+    let second: Msg = serde_json::from_str("[[6]]")?;
     let mut msgs = vec![first.clone(), second.clone()];
 
-    let mut iter = io::BufReader::new(std::fs::File::open("data/input13.txt")?)
-        .lines()
-        .map(|s| s.map(String::into_bytes));
+    let mut iter = io::BufReader::new(std::fs::File::open("data/input13.txt")?).lines();
     for i in 1.. {
         let Some(l) = iter.next() else { break };
         let Some(r) = iter.next() else { anyhow::bail!("Unexpected end of stream") };
 
-        let l = Msg::try_from(l?.as_slice())?;
-        let r = Msg::try_from(r?.as_slice())?;
+        let l = serde_json::from_str(&l?)?;
+        let r = serde_json::from_str(&r?)?;
         if l <= r {
             score += i;
         }
