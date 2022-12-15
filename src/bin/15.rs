@@ -8,28 +8,29 @@ lazy_static::lazy_static! {
 }
 
 type C = i64;
+type Range = std::ops::RangeInclusive<C>;
 const Y_TARGET: C = 2000000;
 const SPACE: C = Y_TARGET * 2;
 
-fn d((x1, y1): (C, C), (x2, y2): (C, C)) -> C {
-    (x1 - x2).abs() + (y1 - y2).abs()
+fn d(a: (C, C), b: (C, C)) -> C {
+    (a.0 - b.0).abs() + (a.1 - b.1).abs()
 }
 
-fn substract(set: &mut Vec<(C, C)>, s: (C, C)) {
-    for i in std::mem::take(set) {
-        if i.0 < s.0 && s.0 <= i.1 {
-            set.push((i.0, s.0 - 1));
+fn substract(set: &mut Vec<Range>, s: Range) {
+    for r in std::mem::take(set) {
+        if r.start() < s.start() && s.start() <= r.end() {
+            set.push(*r.start()..=*s.start() - 1);
         }
-        if i.0 <= s.1 && s.1 < i.1 {
-            set.push((s.1 + 1, i.1));
+        if r.start() <= s.end() && s.end() < r.end() {
+            set.push(*s.end() + 1..=*r.end());
         }
-        if s.1 < i.0 || i.1 < s.0 {
-            set.push(i);
+        if s.end() < r.start() || r.end() < s.start() {
+            set.push(r);
         }
     }
 }
 
-fn range_at(s: (C, C), b: (C, C), at: C) -> std::ops::RangeInclusive<C> {
+fn range_at(s: (C, C), b: (C, C), at: C) -> Range {
     let b_dist = d(s, b);
     let target_dist = d(s, (s.0, at));
     let y_scanned = b_dist - target_dist;
@@ -39,12 +40,12 @@ fn range_at(s: (C, C), b: (C, C), at: C) -> std::ops::RangeInclusive<C> {
 fn main() -> anyhow::Result<()> {
     let mut beacon = HashSet::new();
     let mut scanned = HashSet::new();
-    let mut unscanned = vec![vec![(0, SPACE)]; SPACE as usize];
+    let mut unscanned = vec![vec![0..=SPACE]; SPACE as usize + 1];
 
     for l in io::BufReader::new(std::fs::File::open("data/input15.txt")?).lines() {
         let l = l?;
         let Some(c) = RE.captures(&l) else { anyhow::bail!("bad line {:?}", l) };
-        let (s, b): ((C, C), (C, C)) = (
+        let (s, b) = (
             (c[1].parse()?, c[2].parse()?),
             (c[3].parse()?, c[4].parse()?),
         );
@@ -59,16 +60,16 @@ fn main() -> anyhow::Result<()> {
         for (i, v) in unscanned.iter_mut().enumerate() {
             let r = range_at(s, b, i as C);
             if !r.is_empty() {
-                substract(v, r.into_inner());
+                substract(v, r);
             }
         }
     }
 
     println!("Part1: {}", scanned.len() - beacon.len());
 
-    for (y, v) in unscanned.iter().enumerate() {
-        for &(x1, x2) in v {
-            for x in x1..=x2 {
+    for (y, v) in unscanned.into_iter().enumerate() {
+        for r in v {
+            for x in r {
                 println!("Part2: {}", y as C + x * 4000000);
             }
         }
