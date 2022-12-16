@@ -11,3 +11,4 @@ lazy_static = "1.4.0"
 regex = "1.7.0"
 serde = { version = "1.0.150", features = ["derive"] }
 serde_json = "1.0.89"
+smol_str = "0.1.23"
