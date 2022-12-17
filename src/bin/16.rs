@@ -61,9 +61,10 @@ impl Search {
         if state.remaining != 0 {
             self.q.push(state.clone());
         }
+        self.non_dominated.retain(|s| !s.is_dominated_by(&state));
         self.non_dominated.push(state);
     }
-    fn search(volcano: &HashMap<String, Room>, remaining: u32) -> Self {
+    fn run(volcano: &HashMap<String, Room>, remaining: u32) -> Self {
         let mut s = Self::default();
         s.push(State {
             remaining,
@@ -144,10 +145,10 @@ fn main() -> anyhow::Result<()> {
     }
 
     simplify(&mut volcano);
-    let s = Search::search(&volcano, 30);
+    let s = Search::run(&volcano, 30);
     println!("Part1: {}", s.best());
 
-    let s = Search::search(&volcano, 26);
+    let s = Search::run(&volcano, 26);
     let mut releasing = 0;
     for (i, s1) in s.non_dominated.iter().enumerate() {
         for s2 in &s.non_dominated[0..i] {
