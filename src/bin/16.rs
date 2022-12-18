@@ -8,7 +8,6 @@ lazy_static::lazy_static! {
         Regex::new(r"^Valve (..) has flow rate=(\d+); tunnels? leads? to valves? (.*)$").unwrap();
 }
 
-#[derive(Clone)]
 struct Room {
     rate: i32,
     tunnels: HashMap<String, u32>,
@@ -20,7 +19,7 @@ struct Search {
     q: std::collections::BinaryHeap<State>,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 struct State {
     remaining: u32,
     releasing: i32,
