@@ -1,6 +1,6 @@
 use std::io::Read;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 struct Rock([u16; 4]);
 impl Rock {
     fn manage_jet(&mut self, jet: u8, cave: &[u16]) {
@@ -67,7 +67,7 @@ struct Context {
     cur_rock_height: usize,
     cur_rock: Rock,
     cave: Vec<u16>,
-    nb_fallen_rocks: usize,
+    nb_fallen: usize,
 }
 impl Context {
     fn new() -> Self {
@@ -79,7 +79,7 @@ impl Context {
             rocks,
             cur_rock_height: 4,
             cave,
-            nb_fallen_rocks: 0,
+            nb_fallen: 0,
         }
     }
     fn step(&mut self, jet: u8) {
@@ -93,7 +93,7 @@ impl Context {
             self.cur_rock
                 .stabilize(&mut self.cave[self.cur_rock_height..]);
 
-            self.nb_fallen_rocks += 1;
+            self.nb_fallen += 1;
 
             self.cur_rock = self.rocks.next().unwrap();
             let height = self
@@ -110,54 +110,63 @@ impl Context {
     fn height(&self) -> usize {
         self.cave[1..].iter().filter(|&&l| l != CAVE_LAYER).count()
     }
+    fn state(&self) -> (&[u16], Rock, usize) {
+        let len = self.cave.len();
+        let cave = if len < 10 {
+            &self.cave
+        } else {
+            &self.cave[len - 10..]
+        };
+        (cave, self.cur_rock, len - self.cur_rock_height)
+    }
 }
 
 fn main() -> anyhow::Result<()> {
     let mut buf = vec![];
     std::fs::File::open("data/input17.txt")?.read_to_end(&mut buf)?;
-    let buf_clone = buf.clone();
-    for _ in 0..4 {
-        buf.extend_from_slice(&buf_clone);
-    }
 
     let mut c = Context::new();
-    for jet in buf.iter().copied().cycle() {
+    for &jet in buf.iter().cycle() {
         c.step(jet);
-        if c.nb_fallen_rocks >= 2022 {
+        if c.nb_fallen >= 2022 {
             break;
         }
     }
     println!("part1: {}", c.height(),);
 
-    c = Context::new();
-    let mut wanted: usize = 1000000000000;
-    for jet in buf.iter().copied() {
-        c.step(jet);
-    }
-    let first_nb_fallen_rocks = c.nb_fallen_rocks;
-    let first_height = c.height();
-    for jet in buf.iter().copied() {
-        c.step(jet);
-    }
-
-    wanted -= c.nb_fallen_rocks;
-    let mut height = c.height();
-    let nb_fallen_bulk = c.nb_fallen_rocks - first_nb_fallen_rocks;
-    let height_bulk = c.height() - first_height;
-    let second_height = c.height();
-
-    height += (wanted / nb_fallen_bulk) * height_bulk;
-    wanted %= nb_fallen_bulk;
-    c.nb_fallen_rocks = 0;
-    for jet in buf.iter().copied().cycle() {
-        c.step(jet);
-        if c.nb_fallen_rocks >= wanted {
+    let mut slow = Context::new();
+    let mut fast = Context::new();
+    loop {
+        for &jet in &buf {
+            slow.step(jet);
+            fast.step(jet);
+        }
+        for &jet in &buf {
+            fast.step(jet);
+        }
+        if slow.state() == fast.state() {
             break;
         }
     }
 
-    height += c.height() - second_height;
+    let nb_fallen_bulk = fast.nb_fallen - slow.nb_fallen;
+    let height_bulk = fast.height() - slow.height();
 
+    let mut wanted: usize = 1000000000000;
+    wanted -= slow.nb_fallen;
+    let mut height = slow.height();
+    height += (wanted / nb_fallen_bulk) * height_bulk;
+    wanted %= nb_fallen_bulk;
+
+    slow.nb_fallen = 0;
+    let already_height = slow.height();
+    for &jet in buf.iter().cycle() {
+        slow.step(jet);
+        if slow.nb_fallen >= wanted {
+            break;
+        }
+    }
+    height += slow.height() - already_height;
     println!("part2: {}", height);
 
     Ok(())
