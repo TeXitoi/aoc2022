@@ -1,9 +1,7 @@
 use regex::Regex;
-use smol_str::SmolStr as String;
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::io::{self, BufRead};
-use std::sync::Arc;
 
 lazy_static::lazy_static! {
     static ref RE: Regex =
@@ -18,8 +16,8 @@ struct Room {
 
 #[derive(Default)]
 struct Search {
-    non_dominated: Vec<Arc<State>>,
-    q: std::collections::BinaryHeap<Arc<State>>,
+    non_dominated: Vec<State>,
+    q: std::collections::BinaryHeap<State>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -57,7 +55,6 @@ impl Search {
         if self.non_dominated.iter().any(|s| state.is_dominated_by(s)) {
             return;
         }
-        let state = Arc::new(state);
         if state.remaining != 0 {
             self.q.push(state.clone());
         }
