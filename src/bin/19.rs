@@ -33,12 +33,12 @@ impl State {
     fn is_dominated_by(&self, other: &Self) -> bool {
         self.remaining <= other.remaining
             && self.nb_geode <= other.nb_geode
-            && self.nb_ore + self.remaining * self.nb_ore_robots
-                <= other.nb_ore + other.remaining * other.nb_ore_robots
-            && self.nb_clay + self.remaining * self.nb_clay_robots
-                <= other.nb_clay + other.remaining * other.nb_clay_robots
-            && self.nb_obsidian + self.remaining * self.nb_obsidian_robots
-                <= other.nb_obsidian + other.remaining * other.nb_obsidian_robots
+            && self.nb_ore <= other.nb_ore
+            && self.nb_ore_robots <= other.nb_ore_robots
+            && self.nb_clay <= other.nb_clay
+            && self.nb_clay_robots <= other.nb_clay_robots
+            && self.nb_obsidian <= other.nb_obsidian
+            && self.nb_obsidian_robots <= other.nb_obsidian_robots
     }
 }
 
@@ -81,16 +81,13 @@ impl Blueprint {
             ..Default::default()
         };
         let mut q = std::collections::BinaryHeap::from(vec![state]);
-        let mut solutions = vec![state];
+        let mut solutions = vec![];
         while let Some(old_state) = q.pop() {
-            for state in self.next(old_state) {
-                if solutions.iter().any(|s| state.is_dominated_by(s)) {
-                    continue;
-                }
-                q.push(state);
-                solutions.retain(|s| !s.is_dominated_by(&state));
-                solutions.push(state);
+            if solutions.iter().any(|s| old_state.is_dominated_by(s)) {
+                continue;
             }
+            solutions.push(old_state);
+            q.extend(self.next(old_state));
         }
         solutions.iter().map(|s| s.nb_geode).max().unwrap_or(0)
     }
