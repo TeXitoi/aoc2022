@@ -50,29 +50,23 @@ impl Ord for State {
 }
 
 impl Search {
-    fn push(&mut self, state: State) {
-        if self.non_dominated.iter().any(|s| state.is_dominated_by(s)) {
-            return;
-        }
-        if state.remaining != 0 {
-            self.q.push(state.clone());
-        }
-        self.non_dominated.retain(|s| !s.is_dominated_by(&state));
-        self.non_dominated.push(state);
-    }
     fn run(volcano: &HashMap<String, Room>, remaining: u32) -> Self {
         let mut s = Self::default();
         let targets: HashSet<_> = volcano
             .iter()
             .filter_map(|(k, v)| (v.rate > 0).then_some(k.clone()))
             .collect();
-        s.push(State {
+        s.q.push(State {
             remaining,
             releasing: 0,
             openned: Default::default(),
             position: "AA".into(),
         });
         while let Some(cur_state) = s.q.pop() {
+            if s.non_dominated.iter().any(|s| cur_state.is_dominated_by(s)) {
+                continue;
+            }
+            s.non_dominated.push(cur_state.clone());
             let room = volcano.get(&cur_state.position).unwrap();
             for (room, &dist) in &room.tunnels {
                 if !targets.contains(room) {
@@ -88,7 +82,7 @@ impl Search {
                 let remaining = cur_state.remaining - dist - 1;
                 let mut openned = cur_state.openned.clone();
                 openned.insert(room.clone());
-                s.push(State {
+                s.q.push(State {
                     remaining,
                     openned,
                     releasing: cur_state.releasing + rate * (remaining as i32),
