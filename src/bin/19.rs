@@ -3,7 +3,13 @@ use std::io::{self, BufRead};
 
 lazy_static::lazy_static! {
     static ref RE: Regex =
-        Regex::new(r"^Blueprint (\d+): Each ore robot costs (\d+) ore. Each clay robot costs (\d+) ore. Each obsidian robot costs (\d+) ore and (\d+) clay. Each geode robot costs (\d+) ore and (\d+) obsidian.$").unwrap();
+        Regex::new(
+            "^Blueprint (\\d+): \
+             Each ore robot costs (\\d+) ore. \
+             Each clay robot costs (\\d+) ore. \
+             Each obsidian robot costs (\\d+) ore and (\\d+) clay. \
+             Each geode robot costs (\\d+) ore and (\\d+) obsidian.$"
+        ).unwrap();
 }
 
 #[derive(Debug, Copy, Clone, Default, Eq, PartialEq, Ord, PartialOrd)]
