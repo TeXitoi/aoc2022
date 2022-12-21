@@ -1,6 +1,6 @@
 use regex::Regex;
 use std::cmp::Ordering;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::io::{self, BufRead};
 
 lazy_static::lazy_static! {
@@ -11,12 +11,6 @@ lazy_static::lazy_static! {
 struct Room {
     rate: i32,
     tunnels: HashMap<String, u32>,
-}
-
-#[derive(Default)]
-struct Search {
-    non_dominated: Vec<State>,
-    q: std::collections::BinaryHeap<State>,
 }
 
 #[derive(Clone, Eq, PartialEq)]
@@ -49,67 +43,55 @@ impl Ord for State {
     }
 }
 
-impl Search {
-    fn run(volcano: &HashMap<String, Room>, remaining: u32) -> Self {
-        let mut s = Self::default();
-        let targets: HashSet<_> = volcano
-            .iter()
-            .filter_map(|(k, v)| (v.rate > 0).then_some(k.clone()))
-            .collect();
-        s.q.push(State {
-            remaining,
-            releasing: 0,
-            openned: Default::default(),
-            position: "AA".into(),
-        });
-        while let Some(cur_state) = s.q.pop() {
-            if s.non_dominated.iter().any(|s| cur_state.is_dominated_by(s)) {
+fn search(volcano: &HashMap<String, Room>, remaining: u32) -> Vec<State> {
+    let targets: HashSet<_> = volcano
+        .iter()
+        .filter_map(|(k, v)| (v.rate > 0).then_some(k))
+        .collect();
+    let mut non_dominated = vec![];
+    let mut q = BinaryHeap::from(vec![State {
+        remaining,
+        releasing: 0,
+        openned: Default::default(),
+        position: "AA".into(),
+    }]);
+    while let Some(state) = q.pop() {
+        if non_dominated.iter().any(|s| state.is_dominated_by(s)) {
+            continue;
+        }
+        for (room, &dist) in &volcano[&state.position].tunnels {
+            if !targets.contains(room) || state.openned.contains(room) {
                 continue;
             }
-            s.non_dominated.push(cur_state.clone());
-            let room = volcano.get(&cur_state.position).unwrap();
-            for (room, &dist) in &room.tunnels {
-                if !targets.contains(room) {
-                    continue;
-                }
-                if cur_state.openned.contains(room) {
-                    continue;
-                }
-                if dist + 1 > cur_state.remaining {
-                    continue;
-                }
-                let Some(rate) = volcano.get(room).map(|r| r.rate) else { continue };
-                let remaining = cur_state.remaining - dist - 1;
-                let mut openned = cur_state.openned.clone();
-                openned.insert(room.clone());
-                s.q.push(State {
-                    remaining,
-                    openned,
-                    releasing: cur_state.releasing + rate * (remaining as i32),
-                    position: room.clone(),
-                });
+            let Some(remaining) = state.remaining.checked_sub(dist + 1) else { continue };
+            let mut openned = state.openned.clone();
+            openned.insert(room.clone());
+            q.push(State {
+                remaining,
+                openned,
+                releasing: state.releasing + volcano[room].rate * (remaining as i32),
+                position: room.clone(),
+            });
+        }
+        non_dominated.push(state);
+    }
+    non_dominated
+}
+
+fn best(non_dominated: &[State]) -> i32 {
+    non_dominated.iter().map(|s| s.releasing).max().unwrap_or(0)
+}
+
+fn best_at_2(non_dominated: &[State]) -> i32 {
+    let mut releasing = 0;
+    for (i, s1) in non_dominated.iter().enumerate() {
+        for s2 in &non_dominated[0..i] {
+            if s1.openned.is_disjoint(&s2.openned) {
+                releasing = releasing.max(s1.releasing + s2.releasing);
             }
         }
-        s
     }
-    fn best(&self) -> i32 {
-        self.non_dominated
-            .iter()
-            .map(|s| s.releasing)
-            .max()
-            .unwrap_or(0)
-    }
-    fn best_at_2(&self) -> i32 {
-        let mut releasing = 0;
-        for (i, s1) in self.non_dominated.iter().enumerate() {
-            for s2 in &self.non_dominated[0..i] {
-                if s1.openned.is_disjoint(&s2.openned) {
-                    releasing = releasing.max(s1.releasing + s2.releasing);
-                }
-            }
-        }
-        releasing
-    }
+    releasing
 }
 
 fn simplify(volcano: &mut HashMap<String, Room>) {
@@ -119,14 +101,13 @@ fn simplify(volcano: &mut HashMap<String, Room>) {
             let Some(&ik) = volcano.get(i).and_then(|r| r.tunnels.get(k)) else { continue };
             for j in &nodes {
                 let Some(&kj) = volcano.get(k).and_then(|r| r.tunnels.get(j)) else { continue };
-                let new_dist = ik + kj;
                 let dist = volcano
                     .get_mut(i)
                     .unwrap()
                     .tunnels
                     .entry(j.clone())
                     .or_insert_with(|| u32::MAX);
-                *dist = new_dist.min(*dist);
+                *dist = (ik + kj).min(*dist);
             }
         }
     }
@@ -147,11 +128,8 @@ fn main() -> anyhow::Result<()> {
     }
     simplify(&mut volcano);
 
-    let s = Search::run(&volcano, 30);
-    println!("Part1: {}", s.best());
-
-    let s = Search::run(&volcano, 26);
-    println!("Part2: {}", s.best_at_2());
+    println!("Part1: {}", best(&search(&volcano, 30)));
+    println!("Part2: {}", best_at_2(&search(&volcano, 26)));
 
     Ok(())
 }
