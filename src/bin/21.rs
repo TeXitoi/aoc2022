@@ -28,9 +28,9 @@ impl Monkey {
         }
     }
     fn val(&self, take_humn: bool) -> Option<i64> {
-        match self {
-            &Monkey::Val(v) => Some(v),
-            &Monkey::Humn(v) if take_humn => Some(v),
+        match *self {
+            Monkey::Val(v) => Some(v),
+            Monkey::Humn(v) if take_humn => Some(v),
             _ => None,
         }
     }
@@ -66,17 +66,14 @@ fn propagate(monkeys: &mut HashMap<String, Monkey>, take_humn: bool) -> anyhow::
 fn inverse(monkeys: &HashMap<String, Monkey>, cur: &Monkey, equal: i64) -> anyhow::Result<i64> {
     use Monkey::*;
     match cur {
-        Monkey::Humn(_) => Ok(equal),
-        Monkey::Op { lhs, rhs, op } => match (
-            monkeys.get(lhs).unwrap(),
-            op.as_str(),
-            monkeys.get(rhs).unwrap(),
-        ) {
+        Humn(_) => Ok(equal),
+        Op { lhs, rhs, op } => match (&monkeys[lhs], op.as_str(), &monkeys[rhs]) {
             (&Val(m), "+", other) | (other, "+", &Val(m)) => inverse(monkeys, other, equal - m),
             (&Val(m), "*", other) | (other, "*", &Val(m)) => inverse(monkeys, other, equal / m),
             (other, "-", &Val(m)) => inverse(monkeys, other, equal + m),
             (&Val(m), "-", other) => inverse(monkeys, other, m - equal),
             (other, "/", &Val(m)) => inverse(monkeys, other, equal * m),
+            (&Val(m), "/", other) => inverse(monkeys, other, m / equal),
             v => anyhow::bail!("Unsupported inversion {:?}", v),
         },
         _ => anyhow::bail!("Unsupported node {:?}", cur),
@@ -91,9 +88,15 @@ fn main() -> anyhow::Result<()> {
 
     let mut monkeys = monkeys_orig.clone();
     propagate(&mut monkeys, true)?;
-    println!("Part1: {}", monkeys["root"].val(true).unwrap());
+    println!(
+        "Part1: {}",
+        monkeys
+            .get("root")
+            .and_then(|m| m.val(true))
+            .ok_or_else(|| anyhow::anyhow!("can't compute root"))?,
+    );
 
-    let mut monkeys = monkeys_orig.clone();
+    let mut monkeys = monkeys_orig;
     match monkeys.get_mut("root") {
         Some(Monkey::Op { op, .. }) => *op = "-".into(),
         root => anyhow::bail!("unsupported root {:?}", root),
