@@ -35,7 +35,7 @@ fn main() -> anyhow::Result<()> {
     mix(&mut v);
     println!("Part1: {}", grove(&v));
 
-    let mut v = v_orig.clone();
+    let mut v = v_orig;
     for (_, v) in &mut v {
         *v *= 811589153;
     }

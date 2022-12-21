@@ -173,7 +173,7 @@ impl Blueprint {
 fn main() -> anyhow::Result<()> {
     let blueprints = io::BufReader::new(std::fs::File::open("data/input19.txt")?)
         .lines()
-        .map(|l| Ok(Blueprint::try_from(&*l?)?))
+        .map(|l| Blueprint::try_from(l?.as_str()))
         .collect::<anyhow::Result<Vec<Blueprint>>>()?;
     let mut quality_levels = 0;
     for blueprint in &blueprints {
