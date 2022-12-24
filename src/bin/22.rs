@@ -28,72 +28,58 @@ fn step_cube(map: &[Vec<u8>], coord: &mut (usize, usize), dir: &mut u8) {
     match (*dir, *coord) {
         (3, (0, 50..=99)) => {
             *dir = 0;
-            coord.0 = coord.1 + 100;
-            coord.1 = 0;
+            *coord = (coord.1 + 100, 0)
         }
         (2, (100..=149, 0)) => {
             *dir = 0;
-            coord.0 = 149 - coord.0;
-            coord.1 = 50;
+            *coord = (149 - coord.0, 50)
         }
         (2, (150..=199, 0)) => {
             *dir = 1;
-            coord.1 = coord.0 - 100;
-            coord.0 = 0;
+            *coord = (0, coord.0 - 100)
         }
         (1, (199, 0..=49)) => {
             *dir = 1;
-            coord.1 = coord.1 + 100;
-            coord.0 = 0;
+            *coord = (0, coord.1 + 100);
         }
         (0, (50..=99, 99)) => {
             *dir = 3;
-            coord.1 = coord.0 + 50;
-            coord.0 = 49;
+            *coord = (49, coord.0 + 50);
         }
         (1, (49, 100..=149)) => {
             *dir = 2;
-            coord.0 = coord.1 - 50;
-            coord.1 = 99;
+            *coord = (coord.1 - 50, 99);
         }
         (0, (100..=149, 99)) => {
             *dir = 2;
-            coord.0 = 149 - coord.0;
-            coord.1 = 149;
+            *coord = (149 - coord.0, 149);
         }
         (0, (0..=49, 149)) => {
             *dir = 2;
-            coord.0 = 149 - coord.0;
-            coord.1 = 99;
+            *coord = (149 - coord.0, 99);
         }
         (2, (50..=99, 50)) => {
             *dir = 1;
-            coord.1 = coord.0 - 50;
-            coord.0 = 100;
+            *coord = (100, coord.0 - 50);
         }
         (2, (0..=49, 50)) => {
             *dir = 0;
-            coord.0 = 149 - coord.0;
-            coord.1 = 0;
+            *coord = (149 - coord.0, 0);
         }
         (1, (149, 50..=99)) => {
             *dir = 2;
-            coord.0 = coord.1 + 100;
-            coord.1 = 49;
+            *coord = (coord.1 + 100, 49);
         }
         (3, (0, 100..=149)) => {
-            coord.1 = coord.1 - 100;
-            coord.0 = 199;
+            *coord = (199, coord.1 - 100);
         }
         (0, (150..=199, 49)) => {
             *dir = 3;
-            coord.1 = coord.0 - 100;
-            coord.0 = 149;
+            *coord = (149, coord.0 - 100);
         }
         (3, (100, 0..=49)) => {
             *dir = 0;
-            coord.0 = coord.1 + 50;
-            coord.1 = 50;
+            *coord = (coord.1 + 50, 50);
         }
         _ => {
             *coord = match *dir {
@@ -129,7 +115,7 @@ fn run(map: &[Vec<u8>], mut instrs: &str, step: Step) -> anyhow::Result<usize> {
         instrs = q;
         let nb = nb.parse::<u32>()?;
         for _ in 0..nb {
-            let Some(new) = advance(&map, step, coord, dir) else { break };
+            let Some(new) = advance(map, step, coord, dir) else { break };
             dir = new.0;
             coord = new.1;
         }
