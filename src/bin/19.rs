@@ -14,14 +14,14 @@ lazy_static::lazy_static! {
 
 #[derive(Debug, Copy, Clone, Default, Eq, PartialEq, Ord, PartialOrd)]
 struct State {
-    remaining: i32,
-    nb_geode: i32,
-    nb_ore_robots: i32,
-    nb_ore: i32,
-    nb_clay_robots: i32,
-    nb_clay: i32,
-    nb_obsidian_robots: i32,
-    nb_obsidian: i32,
+    remaining: u32,
+    nb_geode: u32,
+    nb_ore_robots: u32,
+    nb_ore: u32,
+    nb_clay_robots: u32,
+    nb_clay: u32,
+    nb_obsidian_robots: u32,
+    nb_obsidian: u32,
 }
 impl State {
     fn step(&mut self) {
@@ -31,8 +31,7 @@ impl State {
         self.nb_obsidian += self.nb_obsidian_robots;
     }
     fn is_dominated_by(&self, other: &Self) -> bool {
-        self.remaining <= other.remaining
-            && self.nb_geode <= other.nb_geode
+        self.nb_geode <= other.nb_geode
             && self.nb_ore <= other.nb_ore
             && self.nb_ore_robots <= other.nb_ore_robots
             && self.nb_clay <= other.nb_clay
@@ -44,11 +43,11 @@ impl State {
 
 #[derive(Debug)]
 struct Blueprint {
-    id: i32,
-    nb_ore_for_ore: i32,
-    nb_ore_for_clay: i32,
-    nb_ore_clay_for_obsidian: (i32, i32),
-    nb_ore_obsidian_for_geode: (i32, i32),
+    id: u32,
+    nb_ore_for_ore: u32,
+    nb_ore_for_clay: u32,
+    nb_ore_clay_for_obsidian: (u32, u32),
+    nb_ore_obsidian_for_geode: (u32, u32),
 }
 impl<'a> TryFrom<&'a str> for Blueprint {
     type Error = anyhow::Error;
@@ -64,7 +63,7 @@ impl<'a> TryFrom<&'a str> for Blueprint {
     }
 }
 impl Blueprint {
-    fn quality_level(&self) -> i32 {
+    fn quality_level(&self) -> u32 {
         self.id * self.nb_geodes(24)
     }
     fn next(&self, state: State) -> impl Iterator<Item = State> {
@@ -74,7 +73,7 @@ impl Blueprint {
             .chain(self.make_clay_robot(state))
             .chain(self.make_ore_robot(state))
     }
-    fn nb_geodes(&self, remaining: i32) -> i32 {
+    fn nb_geodes(&self, remaining: u32) -> u32 {
         let state = State {
             remaining,
             nb_ore_robots: 1,
@@ -82,12 +81,13 @@ impl Blueprint {
         };
         let mut q = std::collections::BinaryHeap::from(vec![state]);
         let mut solutions = vec![];
-        while let Some(old_state) = q.pop() {
-            if solutions.iter().any(|s| old_state.is_dominated_by(s)) {
+        while let Some(state) = q.pop() {
+            if solutions.iter().any(|s| state.is_dominated_by(s)) {
                 continue;
             }
-            solutions.push(old_state);
-            q.extend(self.next(old_state));
+            solutions.retain(|s| !s.is_dominated_by(&state));
+            solutions.push(state);
+            q.extend(self.next(state));
         }
         solutions.iter().map(|s| s.nb_geode).max().unwrap_or(0)
     }
@@ -175,16 +175,11 @@ fn main() -> anyhow::Result<()> {
         .lines()
         .map(|l| Blueprint::try_from(l?.as_str()))
         .collect::<anyhow::Result<Vec<Blueprint>>>()?;
-    let mut quality_levels = 0;
-    for blueprint in &blueprints {
-        quality_levels += blueprint.quality_level();
-    }
+
+    let quality_levels: u32 = blueprints.iter().map(|b| b.quality_level()).sum();
     println!("Part1: {}", quality_levels);
 
-    let mut product = 1;
-    for blueprint in blueprints.iter().take(3) {
-        product *= blueprint.nb_geodes(32);
-    }
+    let product: u32 = blueprints.iter().take(3).map(|b| b.nb_geodes(32)).product();
     println!("Part2: {}", product);
 
     Ok(())
