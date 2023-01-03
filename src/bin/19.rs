@@ -31,6 +31,9 @@ impl State {
         self.nb_obsidian += self.nb_obsidian_robots;
     }
     fn is_dominated_by(&self, other: &Self) -> bool {
+        if self.remaining <= 2 {
+            return self.nb_geode <= other.nb_geode;
+        }
         self.nb_geode <= other.nb_geode
             && self.nb_ore <= other.nb_ore
             && self.nb_ore_robots <= other.nb_ore_robots
