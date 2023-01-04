@@ -106,3 +106,20 @@ implementation thanks to
 [VecDeque](https://doc.rust-lang.org/stable/std/collections/struct.VecDeque.html),
 [Extend](https://doc.rust-lang.org/stable/std/iter/trait.Extend.html)
 and returning `impl Iterator`.
+
+## [Day 13](src/bin/13.rs)
+
+The parsing is done using
+[serde_json](https://crates.io/crates/serde\_json) and
+[serde](https://crates.io/crates/serde) with `#[serde(untagged)]`. If
+you want a hand-written parser, you can search in the history.
+
+The custom comparison method is implemented as
+[Ord](https://doc.rust-lang.org/stable/std/cmp/trait.Ord.html). It is
+done simply and without allocation thanks to
+[std::slice::from_ref](https://doc.rust-lang.org/stable/std/slice/fn.from_ref.html)
+and the `Ord` implementation of a `slice`.
+
+## [Day 14](src/bin/14.rs)
+
+A small macro to mutualize some code with `break` and `continue`.
