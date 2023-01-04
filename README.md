@@ -26,3 +26,9 @@ suppose you have already read the instructions on the official site.
 
 This implementation use a
 [BinaryHeap](https://doc.rust-lang.org/stable/std/collections/struct.BinaryHeap.html).
+
+## [Day 2](src/bin/02.rs)
+
+This implementation use a lot rust "plain enum", and implement the
+[TryFrom](https://doc.rust-lang.org/stable/std/convert/trait.TryFrom.html)
+on them.
