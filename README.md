@@ -5,7 +5,7 @@ This repository contains my solutions for [Advent of Code
 
 Goal is readable, simple and mostly clean.
 
-Each day is solved in it's dedicated file in the [src/bin]
+Each day is solved in it's dedicated file in the [src/bin](src/bin/)
 directory.
 
 Only a few well-known dependencies are used:
@@ -15,7 +15,7 @@ Only a few well-known dependencies are used:
   easy parsing.
 * [serde](https://crates.io/crates/serde) and
   [serde\_json](https://crates.io/crates/serde_json) are used in
-  [src/bin/13.rs] for easy parsing.
+  [day 13](src/bin/13.rs) for easy parsing.
 
 # Days
 
