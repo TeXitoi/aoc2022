@@ -67,3 +67,25 @@ and part 2.
 ## [Day 5](src/bin/05.rs)
 
 `impl FromStr for Move` to use `line.parse()` in the code.
+
+## [Day 6](src/bin/06.rs)
+
+A very simple implementation (but not optimal) thanks to
+[windows](https://doc.rust-lang.org/stable/std/primitive.slice.html#method.windows)
+and iterators.
+
+## [Day 7](src/bin/07.rs)
+
+Elegant and simple recursion with a closure as visitor. Also, readable
+parsing using pattern matching on a slice.
+
+## [Day 8](src/bin/08.rs)
+
+Genericity by using iterators as function argument.
+
+## [Day 9](src/bin/09.rs)
+
+Using
+[RangeInclusive::contains](https://doc.rust-lang.org/stable/std/ops/struct.RangeInclusive.html#method.contains)
+and pattern matching on
+[Ordering](https://doc.rust-lang.org/stable/std/cmp/enum.Ordering.html).
