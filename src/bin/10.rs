@@ -1,8 +1,8 @@
 use std::io::{self, BufRead};
 
-fn draw(cycle: u32, x: i32) {
+fn draw(cycle: i32, x: i32) {
     let pos = (cycle - 1) % 40;
-    if (pos as i32 - x).abs() <= 1 {
+    if (pos - x).abs() <= 1 {
         print!("#");
     } else {
         print!(" ");
@@ -12,9 +12,9 @@ fn draw(cycle: u32, x: i32) {
     }
 }
 
-fn strength(cycle: u32, x: i32) -> i32 {
+fn strength(cycle: i32, x: i32) -> i32 {
     if [20, 60, 100, 140, 180, 220].contains(&cycle) {
-        cycle as i32 * x
+        cycle * x
     } else {
         0
     }

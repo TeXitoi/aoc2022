@@ -89,3 +89,7 @@ Using
 [RangeInclusive::contains](https://doc.rust-lang.org/stable/std/ops/struct.RangeInclusive.html#method.contains)
 and pattern matching on
 [Ordering](https://doc.rust-lang.org/stable/std/cmp/enum.Ordering.html).
+
+## [Day 10](src/bin/10.rs)
+
+Nothing really new. Part 2 must be "decoded" by eye.
