@@ -1,6 +1,11 @@
 use std::io::BufRead;
 
-type Move = (usize, usize, usize);
+#[derive(Copy, Clone)]
+struct Move {
+    nb: usize,
+    from: usize,
+    to: usize,
+}
 
 fn is_crate(c: u8) -> bool {
     (b'A'..=b'Z').contains(&c)
@@ -33,30 +38,37 @@ fn create_stack(
     Ok(res)
 }
 
-fn parse_move(s: &str) -> anyhow::Result<Move> {
-    let v = s
-        .split(|c: char| !c.is_numeric())
-        .filter(|s| !s.is_empty())
-        .map(|s| s.parse::<usize>())
-        .collect::<Result<Vec<_>, _>>()?;
-    match v.as_slice() {
-        &[nb, from, to] => Ok((nb, from - 1, to - 1)),
-        _ => anyhow::bail!("error parsing move"),
+impl std::str::FromStr for Move {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Move> {
+        let v = s
+            .split(|c: char| !c.is_numeric())
+            .filter(|s| !s.is_empty())
+            .map(|s| s.parse::<usize>())
+            .collect::<Result<Vec<_>, _>>()?;
+        match *v {
+            [nb, from, to] => Ok(Move {
+                nb,
+                from: from - 1,
+                to: to - 1,
+            }),
+            _ => anyhow::bail!("error parsing move"),
+        }
     }
 }
 
-fn make_move_9000(s: &mut [Vec<u8>], (nb, from, to): Move) {
-    for _ in 0..nb {
-        let Some(c) = s[from].pop() else { return };
-        s[to].push(c);
+fn make_move_9000(s: &mut [Vec<u8>], m: Move) {
+    for _ in 0..m.nb {
+        let Some(c) = s[m.from].pop() else { return };
+        s[m.to].push(c);
     }
 }
 
-fn make_move_9001(s: &mut [Vec<u8>], m @ (nb, _, to): Move) {
+fn make_move_9001(s: &mut [Vec<u8>], m: Move) {
     make_move_9000(s, m);
-    let v = &mut s[to];
+    let v = &mut s[m.to];
     let len = v.len();
-    v[len - nb..].reverse();
+    v[len - m.nb..].reverse();
 }
 
 fn run(f: fn(&mut [Vec<u8>], Move)) -> anyhow::Result<String> {
@@ -64,8 +76,7 @@ fn run(f: fn(&mut [Vec<u8>], Move)) -> anyhow::Result<String> {
     let mut stack = create_stack(lines.by_ref())?;
 
     for m in lines {
-        let m = parse_move(&m?)?;
-        f(&mut stack, m);
+        f(&mut stack, m?.parse()?);
     }
 
     let res: String = stack
