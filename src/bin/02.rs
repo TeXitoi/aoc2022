@@ -78,7 +78,7 @@ fn part1() -> anyhow::Result<()> {
         let (them, us): (Move, Move) = (them.try_into()?, us.try_into()?);
         score += them.score(us);
     }
-    println!("part1: {}", score);
+    println!("Part1: {}", score);
     Ok(())
 }
 
@@ -90,7 +90,7 @@ fn part2() -> anyhow::Result<()> {
         let us = them.move_for(res);
         score += them.score(us);
     }
-    println!("part2: {}", score);
+    println!("Part2: {}", score);
     Ok(())
 }
 

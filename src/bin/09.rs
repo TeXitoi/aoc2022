@@ -43,8 +43,8 @@ fn main() -> anyhow::Result<()> {
         }
     }
 
-    println!("part1: {}", s1.len());
-    println!("part2: {}", s9.len());
+    println!("Part1: {}", s1.len());
+    println!("Part2: {}", s9.len());
 
     Ok(())
 }

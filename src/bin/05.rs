@@ -77,8 +77,8 @@ fn run(f: fn(&mut [Vec<u8>], Move)) -> anyhow::Result<String> {
 }
 
 fn main() -> anyhow::Result<()> {
-    println!("part1: {}", run(make_move_9000)?);
-    println!("part2: {}", run(make_move_9001)?);
+    println!("Part1: {}", run(make_move_9000)?);
+    println!("Part2: {}", run(make_move_9001)?);
 
     Ok(())
 }

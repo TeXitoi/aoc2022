@@ -40,7 +40,7 @@ fn main() -> anyhow::Result<()> {
             _ => anyhow::bail!("bad line {:?}", l),
         }
     }
-    println!("part1: {}", strengths);
+    println!("Part1: {}", strengths);
 
     Ok(())
 }

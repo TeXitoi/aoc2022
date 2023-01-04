@@ -18,8 +18,8 @@ fn find_first(buf: &[u8], size: usize) -> anyhow::Result<usize> {
 fn main() -> anyhow::Result<()> {
     let mut buf = vec![];
     std::fs::File::open("data/input6.txt")?.read_to_end(&mut buf)?;
-    println!("part1: {}", find_first(&buf, 4)?);
-    println!("part2: {}", find_first(&buf, 14)?);
+    println!("Part1: {}", find_first(&buf, 4)?);
+    println!("Part2: {}", find_first(&buf, 14)?);
 
     Ok(())
 }

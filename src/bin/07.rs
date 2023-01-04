@@ -35,7 +35,7 @@ fn main() -> anyhow::Result<()> {
             sum_small_dirs += cur_size;
         }
     })?;
-    println!("part1: {}", sum_small_dirs);
+    println!("Part1: {}", sum_small_dirs);
 
     let target = 30000000 - (70000000 - total_size);
     let mut to_remove_size = total_size;
@@ -44,7 +44,7 @@ fn main() -> anyhow::Result<()> {
             to_remove_size = cur_size;
         }
     })?;
-    println!("part2: {}", to_remove_size);
+    println!("Part2: {}", to_remove_size);
 
     Ok(())
 }

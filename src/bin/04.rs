@@ -29,7 +29,7 @@ fn run(f: fn([u32; 4]) -> bool) -> anyhow::Result<u32> {
 }
 
 fn main() -> anyhow::Result<()> {
-    println!("part1: {}", run(is_included)?);
-    println!("part2: {}", run(overlap)?);
+    println!("Part1: {}", run(is_included)?);
+    println!("Part2: {}", run(overlap)?);
     Ok(())
 }

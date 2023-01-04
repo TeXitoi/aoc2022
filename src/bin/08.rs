@@ -37,7 +37,7 @@ fn main() -> anyhow::Result<()> {
         look(&f, &mut v, (0..len).rev().map(|j| (j, i)));
     }
     let nb = v.into_iter().flatten().filter(|v| *v).count();
-    println!("part1: {}", nb);
+    println!("Part1: {}", nb);
 
     let mut max = 0;
     for i in 0..len {
@@ -49,7 +49,7 @@ fn main() -> anyhow::Result<()> {
             max = max.max(cur);
         }
     }
-    println!("part2: {}", max);
+    println!("Part2: {}", max);
 
     Ok(())
 }
