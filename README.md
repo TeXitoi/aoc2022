@@ -57,3 +57,13 @@ function returning an (somethat) `impl Iterator`.
 This implementation use
 [HashSets](https://doc.rust-lang.org/stable/std/collections/struct.HashSet.html)
 and the `let else` new (at the time of writing) feature.
+
+## [Day 4](src/bin/04.rs)
+
+Using the somethat recent `TryFrom<&[T]> for [T; N]`
+implementation. Also using function as argument to mutualize part 1
+and part 2.
+
+## [Day 5](src/bin/05.rs)
+
+`impl FromStr for Move` to use `line.parse()` in the code.
