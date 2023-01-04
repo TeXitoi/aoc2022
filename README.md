@@ -92,4 +92,17 @@ and pattern matching on
 
 ## [Day 10](src/bin/10.rs)
 
-Nothing really new. Part 2 must be "decoded" by eye.
+Nothing really special. Part 2 must be "decoded" by eye.
+
+## [Day 11](src/bin/11.rs)
+
+Some closure wrapped in `Arc<dyn Fn>`.
+
+## [Day 12](src/bin/12.rs)
+
+A very compact
+[BFS](https://en.wikipedia.org/wiki/Breadth-first_search)
+implementation thanks to
+[VecDeque](https://doc.rust-lang.org/stable/std/collections/struct.VecDeque.html),
+[Extend](https://doc.rust-lang.org/stable/std/iter/trait.Extend.html)
+and returning `impl Iterator`.
