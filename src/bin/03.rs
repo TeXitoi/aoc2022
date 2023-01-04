@@ -18,7 +18,7 @@ fn part1() -> anyhow::Result<()> {
         let r = r.iter().copied().collect();
         score += l.intersection(&r).map(priority).sum::<u32>();
     }
-    println!("part1: {}", score);
+    println!("Part1: {}", score);
     Ok(())
 }
 
@@ -38,15 +38,14 @@ fn get_three(
 fn part2() -> anyhow::Result<()> {
     let mut iter = read()?;
     let mut score = 0;
-    loop {
-        let Some([one, two, three]) = get_three(&mut iter)? else { break };
+    while let Some([one, two, three]) = get_three(&mut iter)? {
         score += one
             .intersection(&two)
             .filter(|c| three.contains(c))
             .map(priority)
             .sum::<u32>();
     }
-    println!("part2: {}", score);
+    println!("Part2: {}", score);
     Ok(())
 }
 
