@@ -45,10 +45,8 @@ fn main() -> anyhow::Result<()> {
     for l in io::BufReader::new(std::fs::File::open("data/input15.txt")?).lines() {
         let l = l?;
         let Some(c) = RE.captures(&l) else { anyhow::bail!("bad line {:?}", l) };
-        let (s, b) = (
-            (c[1].parse()?, c[2].parse()?),
-            (c[3].parse()?, c[4].parse()?),
-        );
+        let s = (c[1].parse()?, c[2].parse()?);
+        let b = (c[3].parse()?, c[4].parse()?);
 
         if b.1 == Y_TARGET {
             beacon.insert(b.0);

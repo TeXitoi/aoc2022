@@ -123,3 +123,9 @@ and the `Ord` implementation of a `slice`.
 ## [Day 14](src/bin/14.rs)
 
 A small macro to mutualize some code with `break` and `continue`.
+
+## [Day 15](src/bin/15.rs)
+
+Using
+[RangeInclusive](https://doc.rust-lang.org/stable/std/ops/struct.RangeInclusive.html)
+as intervals, and [regex](https://crates.io/crates/regex) for parsing.
