@@ -24,15 +24,11 @@ impl State {
     fn is_dominated_by(&self, other: &Self) -> bool {
         self.releasing <= other.releasing && self.openned.is_superset(&other.openned)
     }
-    fn next<'a>(
-        &'a self,
-        volcano: &'a HashMap<String, Room>,
-        targets: &'a HashSet<&'a String>,
-    ) -> impl Iterator<Item = State> + 'a {
+    fn next<'a>(&'a self, volcano: &'a HashMap<String, Room>) -> impl Iterator<Item = State> + 'a {
         volcano[&self.position]
             .tunnels
             .iter()
-            .filter(|(r, _)| targets.contains(r) && !self.openned.contains(*r))
+            .filter(|(r, _)| !self.openned.contains(*r))
             .filter_map(|(room, &dist)| {
                 let remaining = self.remaining.checked_sub(dist + 1)?;
                 let mut openned = self.openned.clone();
@@ -59,12 +55,8 @@ impl Ord for State {
     }
 }
 
-fn search(volcano: &HashMap<String, Room>, remaining: u32) -> Vec<State> {
-    let targets: HashSet<_> = volcano
-        .iter()
-        .filter_map(|(k, v)| (v.rate > 0).then_some(k))
-        .collect();
-    let mut solutions = HashMap::<_, Vec<_>>::new();
+fn search(volcano: &HashMap<String, Room>, remaining: u32) -> impl Iterator<Item = State> {
+    let mut states = HashMap::<_, Vec<_>>::new();
     let mut q = BinaryHeap::from(vec![State {
         remaining,
         releasing: 0,
@@ -72,25 +64,33 @@ fn search(volcano: &HashMap<String, Room>, remaining: u32) -> Vec<State> {
         position: "AA".into(),
     }]);
     while let Some(state) = q.pop() {
-        let solutions = solutions.entry(state.position.clone()).or_default();
+        let states = states.entry(state.position.clone()).or_default();
+        if states.iter().any(|s| state.is_dominated_by(s)) {
+            continue;
+        }
+        q.extend(state.next(volcano));
+        states.retain(|s| !s.is_dominated_by(&state));
+        states.push(state);
+    }
+    states.into_values().flatten()
+}
+
+fn best(states: impl Iterator<Item = State>) -> u32 {
+    states.map(|s| s.releasing).max().unwrap_or(0)
+}
+
+fn best_at_2(states: impl Iterator<Item = State>) -> u32 {
+    let mut solutions = Vec::<State>::new();
+    for state in states {
         if solutions.iter().any(|s| state.is_dominated_by(s)) {
             continue;
         }
-        q.extend(state.next(volcano, &targets));
         solutions.retain(|s| !s.is_dominated_by(&state));
         solutions.push(state);
     }
-    solutions.into_values().flatten().collect()
-}
-
-fn best(non_dominated: &[State]) -> u32 {
-    non_dominated.iter().map(|s| s.releasing).max().unwrap_or(0)
-}
-
-fn best_at_2(non_dominated: &[State]) -> u32 {
     let mut releasing = 0;
-    for (i, s1) in non_dominated.iter().enumerate() {
-        for s2 in &non_dominated[0..i] {
+    for (i, s1) in solutions.iter().enumerate() {
+        for s2 in &solutions[..i] {
             if s1.openned.is_disjoint(&s2.openned) {
                 releasing = releasing.max(s1.releasing + s2.releasing);
             }
@@ -100,6 +100,7 @@ fn best_at_2(non_dominated: &[State]) -> u32 {
 }
 
 fn simplify(volcano: &mut HashMap<String, Room>) {
+    // Floyd–Warshall
     let nodes: Vec<_> = volcano.keys().cloned().collect();
     for k in &nodes {
         for i in &nodes {
@@ -115,6 +116,16 @@ fn simplify(volcano: &mut HashMap<String, Room>) {
                 *dist = (ik + kj).min(*dist);
             }
         }
+    }
+
+    // remove useless nodes
+    let targets: HashSet<_> = volcano
+        .iter()
+        .filter_map(|(k, v)| (v.rate > 0).then(|| k.clone()))
+        .collect();
+    volcano.retain(|k, _| targets.contains(k) || k == "AA");
+    for room in volcano.values_mut() {
+        room.tunnels.retain(|k, _| targets.contains(k));
     }
 }
 
@@ -133,8 +144,8 @@ fn main() -> anyhow::Result<()> {
     }
     simplify(&mut volcano);
 
-    println!("Part1: {}", best(&search(&volcano, 30)));
-    println!("Part2: {}", best_at_2(&search(&volcano, 26)));
+    println!("Part1: {}", best(search(&volcano, 30)));
+    println!("Part2: {}", best_at_2(search(&volcano, 26)));
 
     Ok(())
 }
